@@ -11,7 +11,7 @@ import SwiftUI
 struct multimediaApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView().navigationTitle("Copia file su NAS")
         }
     }
 }
