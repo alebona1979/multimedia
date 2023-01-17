@@ -14,6 +14,14 @@ struct ContentView: View {
     @State var urlImage = ""
     @State var urlVideo = ""
     @State var urlType = ""
+    
+    @State var Overwrite = false
+    @State var PhotoPath = ""
+    @State var VideoPath = ""
+    @State var RAWPath = ""
+    @State var TrashPath = ""
+    
+    
     func AddElementToList(){
         self.LoadFiles()
     }
@@ -30,7 +38,7 @@ struct ContentView: View {
     }
     
     func LoadFiles(){
-        self.files.removeAll()
+        //self.files.removeAll()
         let fm = FileManager.default
         let path = "/Users/alessandrobonacchi/Downloads/test/source/"
         do {
@@ -38,10 +46,11 @@ struct ContentView: View {
 
             for item in items {
                 print("Found \(item)")
-                if !self.files.contains(where: {$0.path==item}){
-                    let el = File(path: "/Users/alessandrobonacchi/Downloads/test/source/" + item,selected: true)
+                let el = File(path: "/Users/alessandrobonacchi/Downloads/test/source/" + item,selected: true)
+                if !self.files.contains(where: {$0.fileNameWithoutExt==el.fileNameWithoutExt}){
                     self.files.append(el)
                 }
+                self.files = self.files.sorted(by: {$0.fileNameWithoutExt > $1.fileNameWithoutExt})
 
             }
         } catch {
@@ -51,30 +60,6 @@ struct ContentView: View {
     
     func TestMethod(){
         self.LoadFiles()
-        /*
-        print(selectedItems)
-        if self.selectedItems.count > 0
-        {
-            var id = self.selectedItems.first;
-            var f = self.files.first(where: {$0.id==id})
-            print(f!.path)
-            self.urlImage=f!.path
-        }
-         */
-        
-        /*
-        let fm = FileManager.default
-        let path = "/Users/alessandrobonacchi/Downloads/test/source/"
-        do {
-            let items = try fm.contentsOfDirectory(atPath: path)
-
-            for item in items {
-                print("Found \(item)")
-            }
-        } catch {
-            // failed to read directory – bad permissions, perhaps?
-        }
-         */
     }
     
     var body: some View {
@@ -130,8 +115,34 @@ struct ContentView: View {
                                 player.play()
                             }
                     }
-
                     Spacer()
+                    VStack{
+                        Toggle("Sovrascrivi", isOn: $Overwrite)
+                        Divider()
+                        TextField(
+                            "Percorso Photo",
+                            text: $PhotoPath
+                        )
+                        Divider()
+                        TextField(
+                            "Percorso Video",
+                            text: $VideoPath
+                        )
+                        Divider()
+                        TextField(
+                            "Percorso RAW",
+                            text: $RAWPath
+                        )
+                        Divider()
+                        TextField(
+                            "Percorso Cestino",
+                            text: $TrashPath
+                        )
+                        
+                    }.frame(
+                        width: 312,
+                        alignment: .topLeading
+                    ).padding(.trailing)
                 }
                 .onChange(of: selectedItems, perform: {value in
                     let id = selectedItems.first;
