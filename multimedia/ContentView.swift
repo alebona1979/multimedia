@@ -17,36 +17,45 @@ struct SheetView: View {
 
     var body: some View {
         VStack{
-
-            Toggle("Sovrascrivi", isOn: $Overwrite)
-            Divider()
-            TextField(
-                "Percorso Photo",
-                text: $PhotoPath
-            )
-            Divider()
-            TextField(
-                "Percorso Video",
-                text: $VideoPath
-            )
-            Divider()
-            TextField(
-                "Percorso RAW",
-                text: $RAWPath
-            )
-            Divider()
-            TextField(
-                "Percorso Cestino",
-                text: $TrashPath
-            )
-
+            Group{
+                HStack{
+                    Spacer()
+                    Text("Impostazioni")
+                                .font(.title)
+                            .padding()
+                    Spacer()
+                }
+            }
+            Group{
+                Toggle("Sovrascrivi file", isOn: $Overwrite)
+                Text("Percorso Photo")
+                TextField(
+                    "Percorso Photo",
+                    text: $PhotoPath
+                ).padding([.leading, .trailing, .bottom],6)
+                Text("Percorso Video")
+                TextField(
+                    "Percorso Video",
+                    text: $VideoPath
+                ).padding([.leading, .trailing, .bottom],6)
+                Text("Percorso RAW")
+                TextField(
+                    "Percorso RAW",
+                    text: $RAWPath
+                ).padding([.leading, .trailing, .bottom],6)
+                Text("Percorso Cestino")
+                TextField(
+                    "Percorso Cestino",
+                    text: $TrashPath
+                ).padding([.leading, .trailing, .bottom],6)
+            }
             Button("Chiudi"){
                 dismiss()
             }
 
             
         }.frame(
-            width: 312,
+            width: 640,
             alignment: .topLeading
         ).padding()
 
@@ -62,6 +71,7 @@ struct ContentView: View {
     @State var urlType = ""
     
     @State var Overwrite = false
+    @State var SourcePath = "/Users/alessandrobonacchi/Downloads/test/source/"
     @State var PhotoPath = "/Users/alessandrobonacchi/Downloads/test/dest/photo"
     @State var VideoPath = "/Users/alessandrobonacchi/Downloads/test/dest/video"
     @State var RAWPath = "/Users/alessandrobonacchi/Downloads/test/dest/raw"
@@ -80,10 +90,29 @@ struct ContentView: View {
     
     func Copy(){
         let fm = FileManager.default
+        
+        ForEach(self.files) {
+            file in
+            if file.type.lowercased()=="image"{
+                let dest = self.PhotoPath + file.fileName
+
+            }
+            else if file.type.lowercased()=="video"{
+                
+            }
+            else if file.type.lowercased()=="raw"{
+                
+            }
+            else{
+                
+            }
+        }
+        
         do{
             try fm.copyItem(atPath: "/Users/alessandrobonacchi/Downloads/test/source/DSC04164.JPG", toPath: "/Users/alessandrobonacchi/Downloads/test/dest/photo/DSC04164.JPG")
         }catch{
         }
+
 
     }
     
@@ -97,16 +126,19 @@ struct ContentView: View {
     func LoadFiles(){
         //self.files.removeAll()
         let fm = FileManager.default
-        let path = "/Users/alessandrobonacchi/Downloads/test/source/"
+        let path = self.SourcePath
         do {
             let items = try fm.contentsOfDirectory(atPath: path)
 
             for item in items {
                 print("Found \(item)")
                 let el = File(path: "/Users/alessandrobonacchi/Downloads/test/source/" + item,selected: true)
-                if !self.files.contains(where: {$0.fileNameWithoutExt==el.fileNameWithoutExt}){
-                    self.files.append(el)
+                if el.type.lowercased() == "image" || el.type.lowercased() == "video"{
+                    if !self.files.contains(where: {$0.fileNameWithoutExt==el.fileNameWithoutExt}){
+                        self.files.append(el)
+                    }
                 }
+
                 self.files = self.files.sorted(by: {$0.fileNameWithoutExt > $1.fileNameWithoutExt})
 
             }
@@ -176,33 +208,6 @@ struct ContentView: View {
                             }
                     }
                     Spacer()
-                    VStack{
-                        Toggle("Sovrascrivi", isOn: $Overwrite)
-                        Divider()
-                        TextField(
-                            "Percorso Photo",
-                            text: $PhotoPath
-                        )
-                        Divider()
-                        TextField(
-                            "Percorso Video",
-                            text: $VideoPath
-                        )
-                        Divider()
-                        TextField(
-                            "Percorso RAW",
-                            text: $RAWPath
-                        )
-                        Divider()
-                        TextField(
-                            "Percorso Cestino",
-                            text: $TrashPath
-                        )
-                        
-                    }.frame(
-                        width: 312,
-                        alignment: .topLeading
-                    ).padding(.trailing)
                 }
                 .onChange(of: selectedItems, perform: {value in
                     let id = selectedItems.first;
@@ -227,7 +232,7 @@ struct ContentView: View {
                                 Text("Importa")
                             }
                     Divider()
-                    Button("Show Sheet") {
+                    Button("Impostazioni") {
                         showingSheet.toggle()
                     }
                     .sheet(isPresented: $showingSheet) {
