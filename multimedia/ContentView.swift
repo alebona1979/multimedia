@@ -72,10 +72,10 @@ struct ContentView: View {
     
     @State var Overwrite = false
     @State var SourcePath = "/Users/alessandrobonacchi/Downloads/test/source/"
-    @State var PhotoPath = "/Users/alessandrobonacchi/Downloads/test/dest/photo"
-    @State var VideoPath = "/Users/alessandrobonacchi/Downloads/test/dest/video"
-    @State var RAWPath = "/Users/alessandrobonacchi/Downloads/test/dest/raw"
-    @State var TrashPath = "/Users/alessandrobonacchi/Downloads/test/dest/cestino"
+    @State var PhotoPath = "/Users/alessandrobonacchi/Downloads/test/dest/photo/"
+    @State var VideoPath = "/Users/alessandrobonacchi/Downloads/test/dest/video/"
+    @State var RAWPath = "/Users/alessandrobonacchi/Downloads/test/dest/raw/"
+    @State var TrashPath = "/Users/alessandrobonacchi/Downloads/test/dest/cestino/"
     
     @State private var showingSheet = false
     
@@ -91,29 +91,59 @@ struct ContentView: View {
     func Copy(){
         let fm = FileManager.default
         
-        ForEach(self.files) {
+        self.files.forEach {
             file in
-            if file.type.lowercased()=="image"{
-                let dest = self.PhotoPath + file.fileName
+            if file.selected
+            {
+                if file.type.lowercased()=="image"
+                {
+                    let dest = self.PhotoPath + file.fileName
+                    do{
+                        try fm.copyItem(atPath: file.path, toPath: dest)
+                    }catch{
+                    }
+                }
+                else if file.type.lowercased()=="video"{
+                    let dest = self.VideoPath + file.fileName
+                    do{
+                        try fm.copyItem(atPath: file.path, toPath: dest)
+                    }catch{
+                    }
+                }
+                else if file.type.lowercased()=="raw"{
+                    let dest = self.RAWPath + file.fileName
+                    do{
+                        try fm.copyItem(atPath: file.path, toPath: dest)
+                    }catch{
+                    }
+                }
+            }else{
+                let dest = self.TrashPath + file.fileName
+                do{
+                    try fm.copyItem(atPath: file.path, toPath: dest)
+                }catch{
+                }
+            }
 
-            }
-            else if file.type.lowercased()=="video"{
-                
-            }
-            else if file.type.lowercased()=="raw"{
-                
-            }
-            else{
-                
-            }
+
+            
         }
-        
+        /*
         do{
             try fm.copyItem(atPath: "/Users/alessandrobonacchi/Downloads/test/source/DSC04164.JPG", toPath: "/Users/alessandrobonacchi/Downloads/test/dest/photo/DSC04164.JPG")
         }catch{
         }
+*/
 
-
+    }
+    
+    func fileModificationDate(url: URL) -> Date? {
+        do {
+            let attr = try FileManager.default.attributesOfItem(atPath: url.path)
+            return attr[FileAttributeKey.modificationDate] as? Date
+        } catch {
+            return nil
+        }
     }
     
     func MultiDelete(){
@@ -136,6 +166,9 @@ struct ContentView: View {
                 if el.type.lowercased() == "image" || el.type.lowercased() == "video"{
                     if !self.files.contains(where: {$0.fileNameWithoutExt==el.fileNameWithoutExt}){
                         self.files.append(el)
+                        var date = self.fileModificationDate(url: URL(fileURLWithPath: el.path))
+                        print(date)
+                        
                     }
                 }
 
