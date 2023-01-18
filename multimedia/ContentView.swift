@@ -7,6 +7,52 @@
 import AVKit
 import SwiftUI
 
+struct SheetView: View {
+    @Binding var Overwrite : Bool
+    @Binding var PhotoPath : String
+    @Binding var VideoPath  : String
+    @Binding var RAWPath  : String
+    @Binding var TrashPath  : String
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        VStack{
+
+            Toggle("Sovrascrivi", isOn: $Overwrite)
+            Divider()
+            TextField(
+                "Percorso Photo",
+                text: $PhotoPath
+            )
+            Divider()
+            TextField(
+                "Percorso Video",
+                text: $VideoPath
+            )
+            Divider()
+            TextField(
+                "Percorso RAW",
+                text: $RAWPath
+            )
+            Divider()
+            TextField(
+                "Percorso Cestino",
+                text: $TrashPath
+            )
+
+            Button("Chiudi"){
+                dismiss()
+            }
+
+            
+        }.frame(
+            width: 312,
+            alignment: .topLeading
+        ).padding()
+
+    }
+}
+
 struct ContentView: View {
     
     @State var files: [File] = []
@@ -16,10 +62,12 @@ struct ContentView: View {
     @State var urlType = ""
     
     @State var Overwrite = false
-    @State var PhotoPath = ""
-    @State var VideoPath = ""
-    @State var RAWPath = ""
-    @State var TrashPath = ""
+    @State var PhotoPath = "/Users/alessandrobonacchi/Downloads/test/dest/photo"
+    @State var VideoPath = "/Users/alessandrobonacchi/Downloads/test/dest/video"
+    @State var RAWPath = "/Users/alessandrobonacchi/Downloads/test/dest/raw"
+    @State var TrashPath = "/Users/alessandrobonacchi/Downloads/test/dest/cestino"
+    
+    @State private var showingSheet = false
     
     
     func AddElementToList(){
@@ -28,6 +76,15 @@ struct ContentView: View {
     
     func DeleteElementToList(id: UUID){
         self.files.removeAll(where: {$0.id==id})
+    }
+    
+    func Copy(){
+        let fm = FileManager.default
+        do{
+            try fm.copyItem(atPath: "/Users/alessandrobonacchi/Downloads/test/source/DSC04164.JPG", toPath: "/Users/alessandrobonacchi/Downloads/test/dest/photo/DSC04164.JPG")
+        }catch{
+        }
+
     }
     
     func MultiDelete(){
@@ -62,7 +119,10 @@ struct ContentView: View {
         self.LoadFiles()
     }
     
+
+    
     var body: some View {
+        
         HStack {
             List($files,
                  id: \.id,
@@ -166,6 +226,17 @@ struct ContentView: View {
                             Button(action: {self.AddElementToList()}) {
                                 Text("Importa")
                             }
+                    Divider()
+                    Button("Show Sheet") {
+                        showingSheet.toggle()
+                    }
+                    .sheet(isPresented: $showingSheet) {
+                        SheetView(Overwrite:self.$Overwrite, PhotoPath: self.$PhotoPath, VideoPath: self.$VideoPath,RAWPath: self.$RAWPath, TrashPath: self.$TrashPath )
+                    }
+            Divider()
+                    Button(action: {self.Copy()}) {
+                        Text("Copia")
+                    }
                             Divider()
                             Button(action: {self.MultiDelete()}) {
                                 Text("Elimina")
