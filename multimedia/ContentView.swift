@@ -189,28 +189,33 @@ struct ContentView: View {
     var body: some View {
         
         HStack {
-            List($files,
-                 id: \.id,
-                 selection: $selectedItems,
-                 
-                 rowContent: {$file in
-                
-                HStack{
-                    Toggle("", isOn: $file.selected)
-                    if file.type=="Image"{
-                        Image(systemName: "photo")
-                    }else if file.type=="Video"{
-                        Image(systemName: "video")
-                    }else{
-                        Image(systemName: "doc")
-                    }
-                    Text(file.fileNameWithoutExt)
-                        .fontWeight(.bold)
+            VStack {
+                List($files,
+                     id: \.id,
+                     selection: $selectedItems,
+                     
+                     rowContent: {$file in
+                    
+                    HStack{
+                        Toggle("", isOn: $file.selected)
+                        if file.type=="Image"{
+                            Image(systemName: "photo")
+                        }else if file.type=="Video"{
+                            Image(systemName: "video")
+                        }else{
+                            Image(systemName: "doc")
+                        }
+                        Text(file.fileNameWithoutExt)
+                            .fontWeight(.bold)
 
-                }
-                .padding(6)
-                
-            }).frame(width: 384)
+                    }
+                    .padding(6)
+                    
+                }).frame(width: 384)
+                    .padding(EdgeInsets(top: 2, leading: 0, bottom: 0, trailing: 0))
+                    .scrollContentBackground(.hidden)
+            }
+            
             VStack(alignment: .leading){
                  
                 HStack {
@@ -292,6 +297,7 @@ struct ContentView: View {
                   maxHeight: .infinity,
                   alignment: .topLeading
         )
+            .background(Color(NSColor.windowBackgroundColor))
         }
             
 
