@@ -166,8 +166,9 @@ struct ContentView: View {
                 if el.type.lowercased() == "image" || el.type.lowercased() == "video"{
                     if !self.files.contains(where: {$0.fileNameWithoutExt==el.fileNameWithoutExt}){
                         self.files.append(el)
-                        var date = self.fileModificationDate(url: URL(fileURLWithPath: el.path))
-                        print(date)
+                        //let date = self.fileModificationDate(url: URL(fileURLWithPath: el.path))
+                        print(el.year)
+                        print(el.month)
                         
                     }
                 }

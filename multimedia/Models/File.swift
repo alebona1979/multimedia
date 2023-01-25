@@ -7,6 +7,15 @@
 
 import Foundation
 
+func fileModificationDate(url: URL) -> Date? {
+    do {
+        let attr = try FileManager.default.attributesOfItem(atPath: url.path)
+        return attr[FileAttributeKey.modificationDate] as? Date
+    } catch {
+        return nil
+    }
+}
+
 struct File:Identifiable, Hashable{
     var id = UUID()
     
@@ -44,5 +53,22 @@ struct File:Identifiable, Hashable{
       get {
           var fileData = NSURL(fileURLWithPath: path as String)
           return (fileData.pathExtension)!    }
+    }
+    var date: Date? {
+        get{
+            return fileModificationDate(url: URL(fileURLWithPath: path))
+        }
+    }
+    var month: Int? {
+        get{
+            let dateComponents = Calendar.current.dateComponents([.year, .month], from: date!)
+            return dateComponents.month
+        }
+    }
+    var year: Int? {
+        get{
+            let dateComponents = Calendar.current.dateComponents([.year, .month], from: date!)
+            return dateComponents.year
+        }
     }
 }
