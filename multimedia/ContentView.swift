@@ -90,32 +90,50 @@ struct ContentView: View {
     
     func Copy(){
         let fm = FileManager.default
-        
+        var isDir:ObjCBool = true
         self.files.forEach {
             file in
             if file.selected
             {
                 if file.type.lowercased()=="image"
                 {
-                    let dest = self.PhotoPath + file.fileName
+                    let destYear=self.PhotoPath + String(file.year!) + "/"
+                    if !fm.fileExists(atPath: destYear, isDirectory: &isDir){
+                        do{
+                            try fm.createDirectory(at: URL(fileURLWithPath: destYear, isDirectory: true), withIntermediateDirectories: true)
+                        }catch{}
+                    }
+                    let destMonth = destYear + String(file.month!) + "/"
+                    if !fm.fileExists(atPath: destMonth, isDirectory: &isDir){
+                        do{
+                            try fm.createDirectory(at: URL(fileURLWithPath: destMonth, isDirectory: true), withIntermediateDirectories: true)
+                        }catch{}
+                    }
+                    let dest = destMonth + file.fileName
                     do{
                         try fm.copyItem(atPath: file.path, toPath: dest)
                     }catch{
                     }
                 }
                 else if file.type.lowercased()=="video"{
-                    let dest = self.VideoPath + file.fileName
+                    let destYear=self.VideoPath + String(file.year!) + "/"
+                    if !fm.fileExists(atPath: destYear, isDirectory: &isDir){
+                        do{
+                            try fm.createDirectory(at: URL(fileURLWithPath: destYear, isDirectory: true), withIntermediateDirectories: true)
+                        }catch{}
+                    }
+                    let destMonth = destYear + String(file.month!) + "/"
+                    if !fm.fileExists(atPath: destMonth, isDirectory: &isDir){
+                        do{
+                            try fm.createDirectory(at: URL(fileURLWithPath: destMonth, isDirectory: true), withIntermediateDirectories: true)
+                        }catch{}
+                    }
+                    let dest = destMonth + file.fileName
                     do{
                         try fm.copyItem(atPath: file.path, toPath: dest)
                     }catch{
                     }
-                }
-                else if file.type.lowercased()=="raw"{
-                    let dest = self.RAWPath + file.fileName
-                    do{
-                        try fm.copyItem(atPath: file.path, toPath: dest)
-                    }catch{
-                    }
+                    // per ogni immagine si deve andare a verificare se esiste anche il corrispondente raw
                 }
             }else{
                 let dest = self.TrashPath + file.fileName
@@ -154,7 +172,6 @@ struct ContentView: View {
     }
     
     func LoadFiles(){
-        //self.files.removeAll()
         let fm = FileManager.default
         let path = self.SourcePath
         do {
@@ -163,18 +180,14 @@ struct ContentView: View {
             for item in items {
                 print("Found \(item)")
                 let el = File(path: "/Users/alessandrobonacchi/Downloads/test/source/" + item,selected: true)
+                // i raw non si importano
                 if el.type.lowercased() == "image" || el.type.lowercased() == "video"{
                     if !self.files.contains(where: {$0.fileNameWithoutExt==el.fileNameWithoutExt}){
                         self.files.append(el)
-                        //let date = self.fileModificationDate(url: URL(fileURLWithPath: el.path))
-                        print(el.year)
-                        print(el.month)
                         
                     }
                 }
-
                 self.files = self.files.sorted(by: {$0.fileNameWithoutExt > $1.fileNameWithoutExt})
-
             }
         } catch {
             // failed to read directory – bad permissions, perhaps?
@@ -304,10 +317,6 @@ struct ContentView: View {
 
     }
 }
-
-    
-    
-
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {

@@ -24,7 +24,7 @@ struct File:Identifiable, Hashable{
     var selected: Bool
     var fileName: String{
         get{
-            var fileData = NSURL(fileURLWithPath: path as String)
+            let fileData = NSURL(fileURLWithPath: path as String)
             return (fileData.lastPathComponent)!
         }
     }
@@ -51,7 +51,7 @@ struct File:Identifiable, Hashable{
     }
     var ext: String {
       get {
-          var fileData = NSURL(fileURLWithPath: path as String)
+          let fileData = NSURL(fileURLWithPath: path as String)
           return (fileData.pathExtension)!    }
     }
     var date: Date? {
