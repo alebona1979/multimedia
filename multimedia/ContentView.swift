@@ -4,6 +4,13 @@
 //
 //  Created by Alessandro Bonacchi on 03/01/23.
 //
+//
+//
+// rm -rf /Users/alessandrobonacchi/Downloads/test/dest/raw/*
+// rm -rf /Users/alessandrobonacchi/Downloads/test/dest/video/*
+// rm -rf /Users/alessandrobonacchi/Downloads/test/dest/photo/*
+// rm -rf /Users/alessandrobonacchi/Downloads/test/dest/cestino/*
+
 import AVKit
 import SwiftUI
 
@@ -114,6 +121,27 @@ struct ContentView: View {
                         try fm.copyItem(atPath: file.path, toPath: dest)
                     }catch{
                     }
+                    // per ogni immagine si deve andare a verificare se esiste anche il corrispondente raw
+                    if !file.RAWPath.isEmpty{
+                        if fm.fileExists(atPath: file.RAWPath){
+                            let destYearRAW=self.RAWPath + String(file.year!) + "/"
+                            if !fm.fileExists(atPath: destYearRAW, isDirectory: &isDir){
+                                do{
+                                    try fm.createDirectory(at: URL(fileURLWithPath: destYearRAW, isDirectory: true), withIntermediateDirectories: true)
+                                }catch{}
+                            }
+                            let destMonthRAW = destYearRAW + String(file.month!) + "/"
+                            if !fm.fileExists(atPath: destMonthRAW, isDirectory: &isDir){
+                                do{
+                                    try fm.createDirectory(at: URL(fileURLWithPath: destMonthRAW, isDirectory: true), withIntermediateDirectories: true)
+                                }catch{}
+                            }
+                            let dest = destMonthRAW + file.RAWfileName
+                            do{
+                                try fm.copyItem(atPath: file.RAWPath, toPath: dest)
+                            }catch{}
+                        }
+                    }
                 }
                 else if file.type.lowercased()=="video"{
                     let destYear=self.VideoPath + String(file.year!) + "/"
@@ -133,10 +161,22 @@ struct ContentView: View {
                         try fm.copyItem(atPath: file.path, toPath: dest)
                     }catch{
                     }
-                    // per ogni immagine si deve andare a verificare se esiste anche il corrispondente raw
+
                 }
             }else{
-                let dest = self.TrashPath + file.fileName
+                let destYear=self.TrashPath + String(file.year!) + "/"
+                if !fm.fileExists(atPath: destYear, isDirectory: &isDir){
+                    do{
+                        try fm.createDirectory(at: URL(fileURLWithPath: destYear, isDirectory: true), withIntermediateDirectories: true)
+                    }catch{}
+                }
+                let destMonth = destYear + String(file.month!) + "/"
+                if !fm.fileExists(atPath: destMonth, isDirectory: &isDir){
+                    do{
+                        try fm.createDirectory(at: URL(fileURLWithPath: destMonth, isDirectory: true), withIntermediateDirectories: true)
+                    }catch{}
+                }
+                let dest = destMonth + file.fileName
                 do{
                     try fm.copyItem(atPath: file.path, toPath: dest)
                 }catch{
@@ -146,13 +186,6 @@ struct ContentView: View {
 
             
         }
-        /*
-        do{
-            try fm.copyItem(atPath: "/Users/alessandrobonacchi/Downloads/test/source/DSC04164.JPG", toPath: "/Users/alessandrobonacchi/Downloads/test/dest/photo/DSC04164.JPG")
-        }catch{
-        }
-*/
-
     }
     
     func fileModificationDate(url: URL) -> Date? {
@@ -166,9 +199,12 @@ struct ContentView: View {
     
     func MultiDelete(){
         self.selectedItems.forEach { id in
-            print(id)
             self.files.removeAll(where: {$0.id==id})
         }
+    }
+    
+    func FindRAWForImage(){
+        
     }
     
     func LoadFiles(){
@@ -178,8 +214,7 @@ struct ContentView: View {
             let items = try fm.contentsOfDirectory(atPath: path)
 
             for item in items {
-                print("Found \(item)")
-                let el = File(path: "/Users/alessandrobonacchi/Downloads/test/source/" + item,selected: true)
+                let el = File(path: "/Users/alessandrobonacchi/Downloads/test/source/" + item,selected: true, RAWPath: "")
                 // i raw non si importano
                 if el.type.lowercased() == "image" || el.type.lowercased() == "video"{
                     if !self.files.contains(where: {$0.fileNameWithoutExt==el.fileNameWithoutExt}){
@@ -188,10 +223,27 @@ struct ContentView: View {
                     }
                 }
                 self.files = self.files.sorted(by: {$0.fileNameWithoutExt > $1.fileNameWithoutExt})
+                
+            }
+            // assign RAW path to images
+            for item in items {
+                let el = File(path: "/Users/alessandrobonacchi/Downloads/test/source/" + item,selected: true, RAWPath: "")
+                if el.type.lowercased() == "raw"{
+                    let f=self.files.firstIndex(where: {$0.fileNameWithoutExt==el.fileNameWithoutExt})
+                    if (f != nil){
+                        
+                        self.files[f!].RAWPath="/Users/alessandrobonacchi/Downloads/test/source/" + item
+                        
+                    }
+                    }
+            }
+            for file in self.files {
+                print(file.RAWPath)
             }
         } catch {
             // failed to read directory – bad permissions, perhaps?
         }
+        
     }
     
     func TestMethod(){

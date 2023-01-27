@@ -22,10 +22,20 @@ struct File:Identifiable, Hashable{
     
     var path: String
     var selected: Bool
+    var RAWPath: String
     var fileName: String{
         get{
             let fileData = NSURL(fileURLWithPath: path as String)
             return (fileData.lastPathComponent)!
+        }
+    }
+    var RAWfileName: String{
+        get{
+            if !RAWPath.isEmpty{
+                let fileData = NSURL(fileURLWithPath: RAWPath as String)
+                return (fileData.lastPathComponent)!
+            }
+                return ""
         }
     }
     var fileNameWithoutExt: String{
