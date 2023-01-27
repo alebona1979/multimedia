@@ -21,15 +21,21 @@ struct SheetView: View {
     @Binding var RAWPath  : String
     @Binding var TrashPath  : String
     @Environment(\.dismiss) var dismiss
-
+    
+    func Prova(){
+        var prova = UserDefaults.standard.string(forKey: "Test")
+       print(prova)
+    }
+    
+    
     var body: some View {
         VStack{
             Group{
                 HStack{
                     Spacer()
                     Text("Impostazioni")
-                                .font(.title)
-                            .padding()
+                        .font(.title)
+                        .padding()
                     Spacer()
                 }
             }
@@ -56,16 +62,41 @@ struct SheetView: View {
                     text: $TrashPath
                 ).padding([.leading, .trailing, .bottom],6)
             }
-            Button("Chiudi"){
-                dismiss()
+            Button(action: {UserDefaults.standard.set("Prova", forKey: "Test")}) {
+                HStack {
+                    Image(systemName: "arrow.down.right.and.arrow.up.left")
+                    Text("Salva")
+                }
+                .padding(8)
             }
-
-            
+            .cornerRadius(4)
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+            Button(action:{Prova()}) {
+                HStack {
+                    Image(systemName: "arrow.down.right.and.arrow.up.left")
+                    Text("Recupera")
+                }
+                .padding(8)
+            }
+            .cornerRadius(4)
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+            Button(action: {dismiss()}) {
+                HStack {
+                    Image(systemName: "arrow.down.right.and.arrow.up.left")
+                    Text("Chiudi")
+                }
+                .padding(8)
+            }
+            .cornerRadius(4)
+            .buttonStyle(.bordered)
+            .controlSize(.large)
         }.frame(
             width: 640,
             alignment: .topLeading
         ).padding()
-
+        
     }
 }
 
@@ -86,7 +117,7 @@ struct ContentView: View {
     
     @State private var showingSheet = false
     
-    
+
     func AddElementToList(){
         self.LoadFiles()
     }
@@ -161,7 +192,7 @@ struct ContentView: View {
                         try fm.copyItem(atPath: file.path, toPath: dest)
                     }catch{
                     }
-
+                    
                 }
             }else{
                 let destYear=self.TrashPath + String(file.year!) + "/"
@@ -182,8 +213,8 @@ struct ContentView: View {
                 }catch{
                 }
             }
-
-
+            
+            
             
         }
     }
@@ -212,9 +243,9 @@ struct ContentView: View {
         let path = self.SourcePath
         do {
             let items = try fm.contentsOfDirectory(atPath: path)
-
+            
             for item in items {
-                let el = File(path: "/Users/alessandrobonacchi/Downloads/test/source/" + item,selected: true, RAWPath: "")
+                let el = File(path: self.SourcePath + item,selected: true, RAWPath: "")
                 // i raw non si importano
                 if el.type.lowercased() == "image" || el.type.lowercased() == "video"{
                     if !self.files.contains(where: {$0.fileNameWithoutExt==el.fileNameWithoutExt}){
@@ -227,15 +258,15 @@ struct ContentView: View {
             }
             // assign RAW path to images
             for item in items {
-                let el = File(path: "/Users/alessandrobonacchi/Downloads/test/source/" + item,selected: true, RAWPath: "")
+                let el = File(path: self.SourcePath + item,selected: true, RAWPath: "")
                 if el.type.lowercased() == "raw"{
                     let f=self.files.firstIndex(where: {$0.fileNameWithoutExt==el.fileNameWithoutExt})
                     if (f != nil){
                         
-                        self.files[f!].RAWPath="/Users/alessandrobonacchi/Downloads/test/source/" + item
+                        self.files[f!].RAWPath=self.SourcePath + item
                         
                     }
-                    }
+                }
             }
             for file in self.files {
                 print(file.RAWPath)
@@ -250,7 +281,7 @@ struct ContentView: View {
         self.LoadFiles()
     }
     
-
+    
     
     var body: some View {
         
@@ -273,7 +304,7 @@ struct ContentView: View {
                         }
                         Text(file.fileNameWithoutExt)
                             .fontWeight(.bold)
-
+                        
                     }
                     .padding(6)
                     
@@ -283,16 +314,16 @@ struct ContentView: View {
             }
             
             VStack(alignment: .leading){
-                 
+                
                 HStack {
                     Spacer()
                     Text("Importa file multimediali su NAS")
-                                .font(.largeTitle)
-                            .padding()
+                        .font(.largeTitle)
+                        .padding()
                     Spacer()
                 }
                 HStack{
-
+                    
                     Spacer()
                     if self.urlType.lowercased()=="image"{
                         if NSImage(contentsOf: URL(fileURLWithPath: self.urlImage)) == nil{
@@ -301,8 +332,8 @@ struct ContentView: View {
                             let imm = NSImage(contentsOf: URL(fileURLWithPath: self.urlImage))!
                             Image(nsImage: imm)
                                 .resizable()
-                                       .aspectRatio(contentMode: .fit)
-                                       .padding()
+                                .aspectRatio(contentMode: .fit)
+                                .padding()
                         }
                     } else if self.urlType.lowercased()=="video"{
                         let player = AVPlayer(url: URL(fileURLWithPath: self.urlVideo))
@@ -326,47 +357,71 @@ struct ContentView: View {
                     }else{
                         self.urlType="nd"
                     }
-
+                    
                 })
-
-                        Spacer()
+                
+                Spacer()
                 HStack{
                     Spacer()
-                            Button(action: {self.AddElementToList()}) {
-                                Text("Importa")
-                            }
+                    Button(action: {self.AddElementToList()}) {
+                        HStack {
+                            Image(systemName: "square.and.arrow.down")
+                            Text("Importa")
+                        }.padding(8)
+                    }
+                        .cornerRadius(4)
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
                     Divider()
-                    Button("Impostazioni") {
-                        showingSheet.toggle()
+                    Button(action: {showingSheet.toggle()}) {
+                        HStack {
+                            Image(systemName: "gearshape.fill")
+                            Text("Impostazioni")
+                        }.padding(8)
                     }
-                    .sheet(isPresented: $showingSheet) {
-                        SheetView(Overwrite:self.$Overwrite, PhotoPath: self.$PhotoPath, VideoPath: self.$VideoPath,RAWPath: self.$RAWPath, TrashPath: self.$TrashPath )
-                    }
-            Divider()
+                        .cornerRadius(4)
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                        .sheet(isPresented: $showingSheet) {
+                            SheetView(Overwrite:self.$Overwrite, PhotoPath: self.$PhotoPath, VideoPath: self.$VideoPath,RAWPath: self.$RAWPath, TrashPath: self.$TrashPath )
+                        }
+                    Divider()
                     Button(action: {self.Copy()}) {
-                        Text("Copia")
+                        HStack {
+                            Image(systemName: "doc.on.doc")
+                            Text("Copia")
+                        }.padding(8)
                     }
-                            Divider()
-                            Button(action: {self.MultiDelete()}) {
-                                Text("Elimina")
-                            }
+                        .cornerRadius(4)
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                    Divider()
+                    Button(action: {self.MultiDelete()}) {
+                        HStack {
+                            Image(systemName: "trash.circle.fill")
+                            Text("Elimina")
+                        }.padding(8)
+                    }
+                        .cornerRadius(4)
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
                     Spacer()
-                        }.frame(height: 24)
+                }.frame(height: 24)
                     .padding(EdgeInsets(top: 0, leading: 0, bottom: 8, trailing: 0))
                 
-                        
-                    }
+                
+            }
             .frame(
-                  minWidth: 0,
-                  maxWidth:  .infinity,
-                  minHeight: 0,
-                  maxHeight: .infinity,
-                  alignment: .topLeading
-        )
+                minWidth: 0,
+                maxWidth:  .infinity,
+                minHeight: 0,
+                maxHeight: .infinity,
+                alignment: .topLeading
+            )
             .background(Color(NSColor.windowBackgroundColor))
         }
-            
-
+        
+        
     }
 }
 
