@@ -14,7 +14,9 @@
 import AVKit
 import SwiftUI
 
+
 struct SheetView: View {
+    @Binding var SourcePath : String
     @Binding var Overwrite : Bool
     @Binding var PhotoPath : String
     @Binding var VideoPath  : String
@@ -22,15 +24,42 @@ struct SheetView: View {
     @Binding var TrashPath  : String
     @Environment(\.dismiss) var dismiss
     
+    @State private var presentAlert = false
+    
     func SaveSettings(){
-        //var prova = UserDefaults.standard.string(forKey: "Test")
-        UserDefaults.standard.set(self.Overwrite, forKey: "Overwrite")
-        UserDefaults.standard.set(self.PhotoPath, forKey: "PhotoPath")
-        UserDefaults.standard.set(self.VideoPath, forKey: "VideoPath")
-        UserDefaults.standard.set(self.RAWPath, forKey: "RAWPath")
-        UserDefaults.standard.set(self.TrashPath, forKey: "TrashPath")
+        if self.CheckPaths(){
+            UserDefaults.standard.set(self.SourcePath, forKey: "SourcePath")
+            UserDefaults.standard.set(self.Overwrite, forKey: "Overwrite")
+            UserDefaults.standard.set(self.PhotoPath, forKey: "PhotoPath")
+            UserDefaults.standard.set(self.VideoPath, forKey: "VideoPath")
+            UserDefaults.standard.set(self.RAWPath, forKey: "RAWPath")
+            UserDefaults.standard.set(self.TrashPath, forKey: "TrashPath")
+            dismiss()
+        }else{
+            self.presentAlert = true
+        }
     }
     
+    func CheckPaths() -> Bool {
+        var isDir:ObjCBool = true
+        let fm = FileManager.default
+        if !fm.fileExists(atPath: self.SourcePath, isDirectory: &isDir){
+            return false
+        }
+        if !fm.fileExists(atPath: self.PhotoPath, isDirectory: &isDir){
+            return false
+        }
+        if !fm.fileExists(atPath: self.VideoPath, isDirectory: &isDir){
+            return false
+        }
+        if !fm.fileExists(atPath: self.RAWPath, isDirectory: &isDir){
+            return false
+        }
+        if !fm.fileExists(atPath: self.TrashPath, isDirectory: &isDir){
+            return false
+        }
+        return true
+    }
     
     var body: some View {
         VStack{
@@ -44,23 +73,48 @@ struct SheetView: View {
                 }
             }
             Group{
-                Toggle("Sovrascrivi file", isOn: $Overwrite)
-                Text("Percorso Photo")
+                HStack {
+                    Text("Percorso Origine")
+                    Spacer()
+                }
+                TextField(
+                    "Percorso Origine",
+                    text: $SourcePath
+                ).padding([.leading, .trailing, .bottom],6)
+                HStack {
+                    Toggle("Sovrascrivi file", isOn: $Overwrite)
+                    Spacer()
+                }
+            }
+            Group{
+                HStack {
+                    Text("Percorso Photo")
+                    Spacer()
+                }
                 TextField(
                     "Percorso Photo",
                     text: $PhotoPath
                 ).padding([.leading, .trailing, .bottom],6)
-                Text("Percorso Video")
+                HStack {
+                    Text("Percorso Video")
+                    Spacer()
+                }
                 TextField(
                     "Percorso Video",
                     text: $VideoPath
                 ).padding([.leading, .trailing, .bottom],6)
-                Text("Percorso RAW")
+                HStack {
+                    Text("Percorso RAW")
+                    Spacer()
+                }
                 TextField(
                     "Percorso RAW",
                     text: $RAWPath
                 ).padding([.leading, .trailing, .bottom],6)
-                Text("Percorso Cestino")
+                HStack {
+                    Text("Percorso Cestino")
+                    Spacer()
+                }
                 TextField(
                     "Percorso Cestino",
                     text: $TrashPath
@@ -81,6 +135,12 @@ struct SheetView: View {
                     HStack {
                         Image(systemName: "square.and.arrow.down")
                         Text("Salva")
+                    }        .alert(isPresented: $presentAlert) { // 4
+                        
+                        Alert(
+                            title: Text("Errori"),
+                            message: Text("Sono presenti alcuni percorsi inesistenti o irraggiungibili")
+                        )
                     }
                     .padding(8)
                 }
@@ -106,31 +166,35 @@ struct ContentView: View {
     @State var urlType = ""
     
 
-    @State var SourcePath = "/Users/alessandrobonacchi/Downloads/test/source/"
+
     /*
+    @State var SourcePath = "/Users/alessandrobonacchi/Downloads/test/source/"
     @State var Overwrite = false
     @State var PhotoPath = "/Users/alessandrobonacchi/Downloads/test/dest/photo/"
     @State var VideoPath = "/Users/alessandrobonacchi/Downloads/test/dest/video/"
     @State var RAWPath = "/Users/alessandrobonacchi/Downloads/test/dest/raw/"
     @State var TrashPath = "/Users/alessandrobonacchi/Downloads/test/dest/cestino/"
     */
+    @State var SourcePath = ""
     @State var Overwrite = false
     @State var PhotoPath = ""
     @State var VideoPath = ""
     @State var RAWPath = ""
     @State var TrashPath = ""
+
     
     @State private var showingSheet = false
     
     init(){
+        let _sourcePath = UserDefaults.standard.string(forKey: "SourcePath")
+        if _sourcePath != nil{
+            self._SourcePath = State(initialValue: _sourcePath!)
+        }
         self.Overwrite = UserDefaults.standard.bool(forKey: "Overwrite")
-        //self.SourcePath = UserDefaults.standard.string(forKey: "Source")!
         let _photoPath = UserDefaults.standard.string(forKey: "PhotoPath")
-        print(_photoPath!)
         if _photoPath != nil{
             self._PhotoPath = State(initialValue: _photoPath!)
         }
-        print(self.PhotoPath)
         let _videoPath = UserDefaults.standard.string(forKey: "VideoPath")
         if _videoPath != nil{
             self._VideoPath = State(initialValue: _videoPath!)
@@ -143,13 +207,29 @@ struct ContentView: View {
         if _trashPath != nil{
             self._TrashPath = State(initialValue: _trashPath!)
         }
-        
-        
-        
-        
-
     }
 
+    func CheckPaths() -> Bool {
+        var isDir:ObjCBool = true
+        let fm = FileManager.default
+        if !fm.fileExists(atPath: self.SourcePath, isDirectory: &isDir){
+            return false
+        }
+        if !fm.fileExists(atPath: self.PhotoPath, isDirectory: &isDir){
+            return false
+        }
+        if !fm.fileExists(atPath: self.VideoPath, isDirectory: &isDir){
+            return false
+        }
+        if !fm.fileExists(atPath: self.RAWPath, isDirectory: &isDir){
+            return false
+        }
+        if !fm.fileExists(atPath: self.TrashPath, isDirectory: &isDir){
+            return false
+        }
+        return true
+    }
+    
     func AddElementToList(){
         self.LoadFiles()
     }
@@ -408,7 +488,7 @@ struct ContentView: View {
                         .buttonStyle(.bordered)
                         .controlSize(.large)
                         .sheet(isPresented: $showingSheet) {
-                            SheetView(Overwrite:self.$Overwrite, PhotoPath: self.$PhotoPath, VideoPath: self.$VideoPath,RAWPath: self.$RAWPath, TrashPath: self.$TrashPath )
+                            SheetView(SourcePath: self.$SourcePath, Overwrite:self.$Overwrite, PhotoPath: self.$PhotoPath, VideoPath: self.$VideoPath,RAWPath: self.$RAWPath, TrashPath: self.$TrashPath )
                         }
                     Divider()
                     Button(action: {self.Copy()}) {
