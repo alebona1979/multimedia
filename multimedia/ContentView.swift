@@ -22,9 +22,13 @@ struct SheetView: View {
     @Binding var TrashPath  : String
     @Environment(\.dismiss) var dismiss
     
-    func Prova(){
-        var prova = UserDefaults.standard.string(forKey: "Test")
-       print(prova)
+    func SaveSettings(){
+        //var prova = UserDefaults.standard.string(forKey: "Test")
+        UserDefaults.standard.set(self.Overwrite, forKey: "Overwrite")
+        UserDefaults.standard.set(self.PhotoPath, forKey: "PhotoPath")
+        UserDefaults.standard.set(self.VideoPath, forKey: "VideoPath")
+        UserDefaults.standard.set(self.RAWPath, forKey: "RAWPath")
+        UserDefaults.standard.set(self.TrashPath, forKey: "TrashPath")
     }
     
     
@@ -62,36 +66,29 @@ struct SheetView: View {
                     text: $TrashPath
                 ).padding([.leading, .trailing, .bottom],6)
             }
-            Button(action: {UserDefaults.standard.set("Prova", forKey: "Test")}) {
-                HStack {
-                    Image(systemName: "arrow.down.right.and.arrow.up.left")
-                    Text("Salva")
+            HStack{
+                Button(action: {dismiss()}) {
+                    HStack {
+                        Image(systemName: "arrow.down.right.and.arrow.up.left")
+                        Text("Chiudi")
+                    }
+                    .padding(8)
                 }
-                .padding(8)
-            }
-            .cornerRadius(4)
-            .buttonStyle(.bordered)
-            .controlSize(.large)
-            Button(action:{Prova()}) {
-                HStack {
-                    Image(systemName: "arrow.down.right.and.arrow.up.left")
-                    Text("Recupera")
+                .cornerRadius(4)
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                Button(action:{SaveSettings()}) {
+                    HStack {
+                        Image(systemName: "square.and.arrow.down")
+                        Text("Salva")
+                    }
+                    .padding(8)
                 }
-                .padding(8)
+                .cornerRadius(4)
+                .buttonStyle(.bordered)
+                .controlSize(.large)
             }
-            .cornerRadius(4)
-            .buttonStyle(.bordered)
-            .controlSize(.large)
-            Button(action: {dismiss()}) {
-                HStack {
-                    Image(systemName: "arrow.down.right.and.arrow.up.left")
-                    Text("Chiudi")
-                }
-                .padding(8)
-            }
-            .cornerRadius(4)
-            .buttonStyle(.bordered)
-            .controlSize(.large)
+
         }.frame(
             width: 640,
             alignment: .topLeading
@@ -108,15 +105,50 @@ struct ContentView: View {
     @State var urlVideo = ""
     @State var urlType = ""
     
-    @State var Overwrite = false
+
     @State var SourcePath = "/Users/alessandrobonacchi/Downloads/test/source/"
+    /*
+    @State var Overwrite = false
     @State var PhotoPath = "/Users/alessandrobonacchi/Downloads/test/dest/photo/"
     @State var VideoPath = "/Users/alessandrobonacchi/Downloads/test/dest/video/"
     @State var RAWPath = "/Users/alessandrobonacchi/Downloads/test/dest/raw/"
     @State var TrashPath = "/Users/alessandrobonacchi/Downloads/test/dest/cestino/"
+    */
+    @State var Overwrite = false
+    @State var PhotoPath = ""
+    @State var VideoPath = ""
+    @State var RAWPath = ""
+    @State var TrashPath = ""
     
     @State private var showingSheet = false
     
+    init(){
+        self.Overwrite = UserDefaults.standard.bool(forKey: "Overwrite")
+        //self.SourcePath = UserDefaults.standard.string(forKey: "Source")!
+        let _photoPath = UserDefaults.standard.string(forKey: "PhotoPath")
+        print(_photoPath!)
+        if _photoPath != nil{
+            self._PhotoPath = State(initialValue: _photoPath!)
+        }
+        print(self.PhotoPath)
+        let _videoPath = UserDefaults.standard.string(forKey: "VideoPath")
+        if _videoPath != nil{
+            self._VideoPath = State(initialValue: _videoPath!)
+        }
+        let _rawPath = UserDefaults.standard.string(forKey: "RAWPath")
+        if _rawPath != nil{
+            self._RAWPath = State(initialValue: _rawPath!)
+        }
+        let _trashPath = UserDefaults.standard.string(forKey: "TrashPath")
+        if _trashPath != nil{
+            self._TrashPath = State(initialValue: _trashPath!)
+        }
+        
+        
+        
+        
+
+    }
 
     func AddElementToList(){
         self.LoadFiles()
@@ -234,9 +266,6 @@ struct ContentView: View {
         }
     }
     
-    func FindRAWForImage(){
-        
-    }
     
     func LoadFiles(){
         let fm = FileManager.default
@@ -276,12 +305,8 @@ struct ContentView: View {
         }
         
     }
-    
-    func TestMethod(){
-        self.LoadFiles()
-    }
-    
-    
+      
+
     
     var body: some View {
         
