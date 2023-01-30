@@ -160,6 +160,8 @@ struct SheetView: View {
 struct ContentView: View {
     
     @State private var downloadAmount = 0.0
+    @State private var downloadTotal = 1.0
+    @State private var downloadText = "Nessun file copiato"
         let timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
     
     @State var files: [File] = []
@@ -244,53 +246,87 @@ struct ContentView: View {
     func Copy(){
         let fm = FileManager.default
         var isDir:ObjCBool = true
-        self.files.forEach {
-            file in
-            if file.selected
-            {
-                if file.type.lowercased()=="image"
+        DispatchQueue.global().async {
+            downloadTotal=(Double)(self.files.count)
+            downloadAmount=0
+            downloadText="Inizio copia files in corso..."
+            self.files.forEach {
+                file in
+                downloadAmount=downloadAmount+1
+                Thread.sleep(forTimeInterval: 0.1)
+                if file.selected
                 {
-                    let destYear=self.PhotoPath + String(file.year!) + "/"
-                    if !fm.fileExists(atPath: destYear, isDirectory: &isDir){
-                        do{
-                            try fm.createDirectory(at: URL(fileURLWithPath: destYear, isDirectory: true), withIntermediateDirectories: true)
-                        }catch{}
-                    }
-                    let destMonth = destYear + String(file.month!) + "/"
-                    if !fm.fileExists(atPath: destMonth, isDirectory: &isDir){
-                        do{
-                            try fm.createDirectory(at: URL(fileURLWithPath: destMonth, isDirectory: true), withIntermediateDirectories: true)
-                        }catch{}
-                    }
-                    let dest = destMonth + file.fileName
-                    do{
-                        try fm.copyItem(atPath: file.path, toPath: dest)
-                    }catch{
-                    }
-                    // per ogni immagine si deve andare a verificare se esiste anche il corrispondente raw
-                    if !file.RAWPath.isEmpty{
-                        if fm.fileExists(atPath: file.RAWPath){
-                            let destYearRAW=self.RAWPath + String(file.year!) + "/"
-                            if !fm.fileExists(atPath: destYearRAW, isDirectory: &isDir){
-                                do{
-                                    try fm.createDirectory(at: URL(fileURLWithPath: destYearRAW, isDirectory: true), withIntermediateDirectories: true)
-                                }catch{}
-                            }
-                            let destMonthRAW = destYearRAW + String(file.month!) + "/"
-                            if !fm.fileExists(atPath: destMonthRAW, isDirectory: &isDir){
-                                do{
-                                    try fm.createDirectory(at: URL(fileURLWithPath: destMonthRAW, isDirectory: true), withIntermediateDirectories: true)
-                                }catch{}
-                            }
-                            let dest = destMonthRAW + file.RAWfileName
+                    downloadText="Copia in corso di " + file.fileName+"..."
+                    if file.type.lowercased()=="image"
+                    {
+                        let destYear=self.PhotoPath + String(file.year!) + "/"
+                        if !fm.fileExists(atPath: destYear, isDirectory: &isDir){
                             do{
-                                try fm.copyItem(atPath: file.RAWPath, toPath: dest)
+                                try fm.createDirectory(at: URL(fileURLWithPath: destYear, isDirectory: true), withIntermediateDirectories: true)
                             }catch{}
                         }
+                        let destMonth = destYear + String(file.month!) + "/"
+                        if !fm.fileExists(atPath: destMonth, isDirectory: &isDir){
+                            do{
+                                try fm.createDirectory(at: URL(fileURLWithPath: destMonth, isDirectory: true), withIntermediateDirectories: true)
+                            }catch{}
+                        }
+                        let dest = destMonth + file.fileName
+                        if(!fm.fileExists(atPath: dest) || Overwrite){
+                            do{
+                                try fm.copyItem(atPath: file.path, toPath: dest)
+                            }catch{
+                            }
+                        }
+
+                        // per ogni immagine si deve andare a verificare se esiste anche il corrispondente raw
+                        if !file.RAWPath.isEmpty{
+                            if fm.fileExists(atPath: file.RAWPath){
+                                let destYearRAW=self.RAWPath + String(file.year!) + "/"
+                                if !fm.fileExists(atPath: destYearRAW, isDirectory: &isDir){
+                                    do{
+                                        try fm.createDirectory(at: URL(fileURLWithPath: destYearRAW, isDirectory: true), withIntermediateDirectories: true)
+                                    }catch{}
+                                }
+                                let destMonthRAW = destYearRAW + String(file.month!) + "/"
+                                if !fm.fileExists(atPath: destMonthRAW, isDirectory: &isDir){
+                                    do{
+                                        try fm.createDirectory(at: URL(fileURLWithPath: destMonthRAW, isDirectory: true), withIntermediateDirectories: true)
+                                    }catch{}
+                                }
+                                let dest = destMonthRAW + file.RAWfileName
+                                if(!fm.fileExists(atPath: dest) || Overwrite){
+                                    do{
+                                        try fm.copyItem(atPath: file.RAWPath, toPath: dest)
+                                    }catch{}
+                                }
+
+                            }
+                        }
                     }
-                }
-                else if file.type.lowercased()=="video"{
-                    let destYear=self.VideoPath + String(file.year!) + "/"
+                    else if file.type.lowercased()=="video"{
+                        let destYear=self.VideoPath + String(file.year!) + "/"
+                        if !fm.fileExists(atPath: destYear, isDirectory: &isDir){
+                            do{
+                                try fm.createDirectory(at: URL(fileURLWithPath: destYear, isDirectory: true), withIntermediateDirectories: true)
+                            }catch{}
+                        }
+                        let destMonth = destYear + String(file.month!) + "/"
+                        if !fm.fileExists(atPath: destMonth, isDirectory: &isDir){
+                            do{
+                                try fm.createDirectory(at: URL(fileURLWithPath: destMonth, isDirectory: true), withIntermediateDirectories: true)
+                            }catch{}
+                        }
+                        let dest = destMonth + file.fileName
+                        if(!fm.fileExists(atPath: dest) || Overwrite){
+                            do{
+                                try fm.copyItem(atPath: file.path, toPath: dest)
+                            }catch{
+                            }
+                        }
+                    }
+                }else{
+                    let destYear=self.TrashPath + String(file.year!) + "/"
                     if !fm.fileExists(atPath: destYear, isDirectory: &isDir){
                         do{
                             try fm.createDirectory(at: URL(fileURLWithPath: destYear, isDirectory: true), withIntermediateDirectories: true)
@@ -303,35 +339,21 @@ struct ContentView: View {
                         }catch{}
                     }
                     let dest = destMonth + file.fileName
-                    do{
-                        try fm.copyItem(atPath: file.path, toPath: dest)
-                    }catch{
+                    if(!fm.fileExists(atPath: dest) || Overwrite){
+                        do{
+                            try fm.copyItem(atPath: file.path, toPath: dest)
+                        }catch{
+                        }
                     }
-                    
+
                 }
-            }else{
-                let destYear=self.TrashPath + String(file.year!) + "/"
-                if !fm.fileExists(atPath: destYear, isDirectory: &isDir){
-                    do{
-                        try fm.createDirectory(at: URL(fileURLWithPath: destYear, isDirectory: true), withIntermediateDirectories: true)
-                    }catch{}
-                }
-                let destMonth = destYear + String(file.month!) + "/"
-                if !fm.fileExists(atPath: destMonth, isDirectory: &isDir){
-                    do{
-                        try fm.createDirectory(at: URL(fileURLWithPath: destMonth, isDirectory: true), withIntermediateDirectories: true)
-                    }catch{}
-                }
-                let dest = destMonth + file.fileName
-                do{
-                    try fm.copyItem(atPath: file.path, toPath: dest)
-                }catch{
-                }
+                
+
+
             }
-            
-            
-            
+            downloadText="Copia completata"
         }
+        
     }
     
     func fileModificationDate(url: URL) -> Date? {
@@ -466,12 +488,8 @@ struct ContentView: View {
                 })
                 
                 Spacer()
-                ProgressView("Copia files in corso…", value: downloadAmount, total: 100)
-                            .onReceive(timer) { _ in
-                                if downloadAmount < 100 {
-                                    downloadAmount += 2
-                                }
-                            }.padding()
+                ProgressView(downloadText, value: downloadAmount, total: downloadTotal)
+                    .padding()
                 HStack{
                     Spacer()
                     Button(action: {self.AddElementToList()}) {
