@@ -159,6 +159,9 @@ struct SheetView: View {
 
 struct ContentView: View {
     
+    @State private var downloadAmount = 0.0
+        let timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
+    
     @State var files: [File] = []
     @State var selectedItems = Set<UUID>()
     @State var urlImage = ""
@@ -359,7 +362,6 @@ struct ContentView: View {
                 if el.type.lowercased() == "image" || el.type.lowercased() == "video"{
                     if !self.files.contains(where: {$0.fileNameWithoutExt==el.fileNameWithoutExt}){
                         self.files.append(el)
-                        
                     }
                 }
                 self.files = self.files.sorted(by: {$0.fileNameWithoutExt > $1.fileNameWithoutExt})
@@ -371,9 +373,7 @@ struct ContentView: View {
                 if el.type.lowercased() == "raw"{
                     let f=self.files.firstIndex(where: {$0.fileNameWithoutExt==el.fileNameWithoutExt})
                     if (f != nil){
-                        
                         self.files[f!].RAWPath=self.SourcePath + item
-                        
                     }
                 }
             }
@@ -466,6 +466,12 @@ struct ContentView: View {
                 })
                 
                 Spacer()
+                ProgressView("Copia files in corso…", value: downloadAmount, total: 100)
+                            .onReceive(timer) { _ in
+                                if downloadAmount < 100 {
+                                    downloadAmount += 2
+                                }
+                            }.padding()
                 HStack{
                     Spacer()
                     Button(action: {self.AddElementToList()}) {
