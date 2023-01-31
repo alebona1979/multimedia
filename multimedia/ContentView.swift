@@ -195,7 +195,7 @@ struct ContentView: View {
         if _sourcePath != nil{
             self._SourcePath = State(initialValue: _sourcePath!)
         }
-        self.Overwrite = UserDefaults.standard.bool(forKey: "Overwrite")
+        self._Overwrite = State(initialValue: UserDefaults.standard.bool(forKey: "Overwrite"))
         let _photoPath = UserDefaults.standard.string(forKey: "PhotoPath")
         if _photoPath != nil{
             self._PhotoPath = State(initialValue: _photoPath!)
