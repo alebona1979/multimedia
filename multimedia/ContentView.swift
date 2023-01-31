@@ -11,9 +11,12 @@
 // rm -rf /Users/alessandrobonacchi/Downloads/test/dest/photo/*
 // rm -rf /Users/alessandrobonacchi/Downloads/test/dest/cestino/*
 
+
+// rm -rf /Users/alessandrobonacchi/Downloads/test/dest/raw/. && rm -rf /Users/alessandrobonacchi/Downloads/test/dest/video/. && rm -rf /Users/alessandrobonacchi/Downloads/test/dest/photo/. && rm -rf /Users/alessandrobonacchi/Downloads/test/dest/cestino/.
+                                                                                                                          
 import AVKit
 import SwiftUI
-
+//import AMSMB2
 
 struct SheetView: View {
     @Binding var SourcePath : String
@@ -129,7 +132,7 @@ struct SheetView: View {
                     .padding(8)
                 }
                 .cornerRadius(4)
-                .buttonStyle(.bordered)
+                .buttonStyle(.plain)
                 .controlSize(.large)
                 Button(action:{SaveSettings()}) {
                     HStack {
@@ -145,7 +148,7 @@ struct SheetView: View {
                     .padding(8)
                 }
                 .cornerRadius(4)
-                .buttonStyle(.bordered)
+                .buttonStyle(.plain)
                 .controlSize(.large)
             }
 
@@ -158,7 +161,7 @@ struct SheetView: View {
 }
 
 struct ContentView: View {
-    
+    @State private var presentAlert = false
     @State private var downloadAmount = 0.0
     @State private var downloadTotal = 1.0
     @State private var downloadText = "Nessun file copiato"
@@ -244,9 +247,14 @@ struct ContentView: View {
     }
     
     func Copy(){
+        if(self.files.count == 0){
+            self.presentAlert=true
+            return
+        }
         let fm = FileManager.default
         var isDir:ObjCBool = true
         DispatchQueue.global().async {
+            
             downloadTotal=(Double)(self.files.count)
             downloadAmount=0
             downloadText="Inizio copia files in corso..."
@@ -263,7 +271,9 @@ struct ContentView: View {
                         if !fm.fileExists(atPath: destYear, isDirectory: &isDir){
                             do{
                                 try fm.createDirectory(at: URL(fileURLWithPath: destYear, isDirectory: true), withIntermediateDirectories: true)
-                            }catch{}
+                            }catch{
+                                print("Unexpected error: \(error).")
+                            }
                         }
                         let destMonth = destYear + String(file.month!) + "/"
                         if !fm.fileExists(atPath: destMonth, isDirectory: &isDir){
@@ -399,9 +409,6 @@ struct ContentView: View {
                     }
                 }
             }
-            for file in self.files {
-                print(file.RAWPath)
-            }
         } catch {
             // failed to read directory – bad permissions, perhaps?
         }
@@ -536,7 +543,7 @@ struct ContentView: View {
                         .controlSize(.large)
                     Spacer()
                 }.frame(height: 24)
-                    .padding(EdgeInsets(top: 0, leading: 0, bottom: 8, trailing: 0))
+                    .padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
                 
                 
             }
@@ -548,7 +555,14 @@ struct ContentView: View {
                 alignment: .topLeading
             )
             .background(Color(NSColor.windowBackgroundColor))
+        }.alert(isPresented: $presentAlert) { // 4
+            
+            Alert(
+                title: Text("Errore"),
+                message: Text("Non sono stati caricati file da copiare")
+            )
         }
+        .padding(8)
         
         
     }
