@@ -385,10 +385,12 @@ struct ContentView: View {
     func LoadFiles(){
         let fm = FileManager.default
         let path = self.SourcePath
+        print(path)
         do {
             let items = try fm.contentsOfDirectory(atPath: path)
-            
+            print(items)
             for item in items {
+                print(item)
                 let el = File(path: self.SourcePath + item,selected: true, RAWPath: "")
                 // i raw non si importano
                 if el.type.lowercased() == "image" || el.type.lowercased() == "video"{
